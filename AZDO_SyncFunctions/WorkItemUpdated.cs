@@ -46,6 +46,7 @@ namespace AZDO_SyncFunctions
             catch (Exception)
             {
                 log.Info("Revision didn't change");
+                return req.CreateResponse(HttpStatusCode.OK, "Revision didn't change");
             }
 
             string destVSTS;
@@ -59,7 +60,7 @@ namespace AZDO_SyncFunctions
             if (destWorkItemId == "")
             {
                 log.Info("WorkItem to be updated not found... Perhaps we should create it... :-)");
-                return req.CreateResponse(HttpStatusCode.OK, "");
+                return req.CreateResponse(HttpStatusCode.OK, "WorkItem to be updated not found... Perhaps we should create it... :-)");
             }
             else
             {
@@ -203,11 +204,6 @@ namespace AZDO_SyncFunctions
                                 JArray relations = (JArray)originalWI["resource"]["relations"]["removed"];
                                 foreach (JObject relation in relations.Children())
                                 {
-                                    //foreach (JProperty property in relation.Properties())
-                                    //{
-                                    //    log.Info(property.Name + " - " + Utility.JSONEncode(property.Value.ToString()));
-                                    //}
-
                                     int relationId = -1;
                                     bool found = false;
 
@@ -306,8 +302,5 @@ namespace AZDO_SyncFunctions
                 }
             }
         }
-
-
-
     }
 }

@@ -33,10 +33,6 @@ namespace AZDO_SyncFunctions
 
             Utility.SetVSTSAccountInfo("", "", out destVSTS, out destPrj, out destPAT);
 
-            //log.Info(destVSTS);
-            //log.Info(destPrj);
-            //log.Info(destPAT);
-
             string destWorkItemID = await Utility.GetDestinationWorkItemId(destVSTS, destPAT, destPrj, workItemID, log);
 
             if (destWorkItemID == "")
