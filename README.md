@@ -6,7 +6,6 @@ Sample project to sync Work Items and other items from one Azure DevOps Team Pro
 
 # Help needed
 - Documentation
-- Updating comments in the code that are still in Italian.
 - Porting to Azure Function 2.0 and to Azure DevOps SDK.
 - Better error handling.
 - Handling of other common cases.
