@@ -19,12 +19,15 @@ namespace AZDO_SyncFunctions
         [FunctionName("WorkItemCreated")]
         public static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)]HttpRequestMessage req, TraceWriter log)
         {
-            // mette l'ID originale come Tag "OriginalID="
-            // link e attachment funzionano
-            //
-            // Al momento IGNORA alcuni campi, come il created by, date, updated by, date, etc...
-            //
-            // Da errore nel test dei Service Hook, gli viene passato sempre Fabrikam - non so se trapparlo o meno
+            // original workitem ID is saved on destination workitem as a Tag "OriginalID=xxx;"
+            // http links and attachments are working
+            // links to git/tfvc and other kind of links require work to run correctly
+
+            // some fields are ignored by default, like created by, date, updated by, date, etc...
+            
+            // If the endpoint is "Tested" with the test button of Azure DevOps Service Hook wizard
+            // it gives an error because it receives "Fabrikam" as the team project
+            // Don't know if it's ok to trap it or leave the error.
 
             log.Info($"++++++++++WorkItemCreate was triggered!");
             HttpContent requestContent = req.Content;
@@ -68,7 +71,8 @@ namespace AZDO_SyncFunctions
             else if (workItemType == "Test Suite")
             {
                 if (originalWI["resource"]["fields"]["Microsoft.VSTS.TCM.TestSuiteAudit"] == null)
-                // test suite figlia di un test plan diretto, viene creata automaticamente quando creo il plan, io devo cercarla e associarla
+                // first test suite in a test plan is automatically created when a test plan is created
+                // we shouldn't create it, we should search for it and associate it
                 {
                     string testPlan = await Utility.GetTestPlanFromRootTestSuite(sourceVSTS, sourceTeamProject, destPAT, workItemID, log);
                     string destTestPlan = await Utility.GetDestinationWorkItemId(destVSTS, destPAT, destPrj, testPlan, log);
@@ -86,6 +90,7 @@ namespace AZDO_SyncFunctions
                     }
                 }
                 else if (originalWI["resource"]["fields"]["Microsoft.VSTS.TCM.TestSuiteAudit"].ToString().StartsWith("Added test suite to parent:"))
+                // other test suites inside a test plan should be created and associated normally
                 {
                     string sourceParentTestSuite = originalWI["resource"]["fields"]["Microsoft.VSTS.TCM.TestSuiteAudit"].ToString();
                     sourceParentTestSuite = sourceParentTestSuite.Substring(sourceParentTestSuite.LastIndexOf(' ') + 1);
@@ -99,8 +104,6 @@ namespace AZDO_SyncFunctions
                     if (originalWI["resource"]["fields"]["Microsoft.VSTS.TCM.TestSuiteType"].ToString() == "Static")
                     {
                         json = "{ \"suiteType\": \"StaticTestSuite\", \"name\": \"" + title + "\" }";
-
-
                     }
                     else if (originalWI["resource"]["fields"]["Microsoft.VSTS.TCM.TestSuiteType"].ToString() == "Query Based")
                     {
@@ -124,7 +127,6 @@ namespace AZDO_SyncFunctions
                     string testsuiteid = await Utility.CreateTestSuite(destVSTS, destPAT, destPrj, destTestPlan, destParentTestSuite, workItemID, json, log);
                     log.Info("Created test suite: " + testsuiteid);
                     return req.CreateResponse(HttpStatusCode.OK, "");
-
                 }
                 else
                 {
@@ -163,6 +165,7 @@ namespace AZDO_SyncFunctions
                     else if (property.Name.Contains("Kanban.Column") || property.Name.Contains("System.BoardColum"))
                     {
                         // skip Kanban.Column(s)
+                        // should be moved to jsonPatch add
                     }
                     else
                     {
