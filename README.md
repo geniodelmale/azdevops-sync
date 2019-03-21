@@ -12,7 +12,7 @@ Sample project to sync Work Items and other items from one Azure DevOps Team Pro
 - Handling of other common cases.
 - Video to show how it works.
 
-# What's missing from myselft
+# What's missing from myself
 - Documentation on how to setup the project on Azure Functions
 - Build and release pipelines to move test results back to the original Team Project
 - Azure Function supporting the pipelines
